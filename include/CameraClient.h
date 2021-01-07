@@ -31,7 +31,7 @@ public:
 	std::string getCameraIp(); //get ip address of camera
 	std::string getCameraVersion(); //get the version of the camera
 	std::string getParameter(const std::string paraName, std::string& error); //exposed API for getting camera's parameters
-	std::string setParamater(const std::string paraName, double value); //exposed API for setting camera's parameters
+	std::string setParameter(const std::string paraName, double value); //exposed API for setting camera's parameters
 
 
 private:

@@ -124,11 +124,14 @@ There are two main classes: CameraClient and ZmqClient. CameraClient is subclass
 
   * **setParameter()** : set the value of a specific parameter in camera.
 
+    **Attention**: Please be sure to know the meaning of your setting of parameters, **wrong setting could cause some errors in the interfaces!**
+
     **Note**：Some parameters cannot be set in this version, they are available in next version. But they can still be set in Mech_eye. Here are all parameters can be set now(You can check them in Mech_eye software):
 
     * **Projection** part:
       * period
       * isNanoType
+      * lightPower
       * syncExposure
     * **3D scaning** part:
       * exposure1
@@ -140,7 +143,7 @@ There are two main classes: CameraClient and ZmqClient. CameraClient is subclass
     * **2D scaning** part:
       * camera2DExpTime
       * expectedGrayValue
-      * sharpenfactor
+      * sharpenFactor
     * **filter** part:
       * contrastThres
       * strength
@@ -183,7 +186,7 @@ std::cout << "Camera IP: " << camera.getCameraIp() << std::endl
 Finally, we can set and get the value of a specific parameter, in this case, we choose exposure time for color image:
 
 ```c++
-std::cout<<camera.setParamater(“camera2DExposureTime”, 10)<<std::endl;
+std::cout<<camera.setParameter(“camera2DExposureTime”, 10)<<std::endl;
 //unit for exposure time is ms, return value of setParameter is string.If successful, the return string will be empty, otherwise it prints error message.
 std::cout<<camera.getParameter(“camera2DExposureTime”, error)<<std::endl;
 

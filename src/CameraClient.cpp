@@ -167,7 +167,7 @@ std::string CameraClient::getParameter(std::string paraName, std::string& error)
 	return getCameraParameter(paraName, error);
 }
 
-std::string  CameraClient::setParamater(std::string paraName, double value)
+std::string  CameraClient::setParameter(std::string paraName, double value)
 {
 	std::string rel = setCameraParameter(paraName, value);
 	return rel;
