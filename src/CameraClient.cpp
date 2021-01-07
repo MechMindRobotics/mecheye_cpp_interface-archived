@@ -2,7 +2,8 @@
 #include <opencv2/imgcodecs.hpp>
 #include "CameraCmd.h"
 #include <regex>
-#include "../json/json.h"
+#include "json/json.h"
+#define INT32 4
 namespace
 {
 	double readDouble(const std::string& data, const int pos)
@@ -140,6 +141,7 @@ cv::Mat CameraClient::captureDepthImg()
 		std::cout << "Client depth image is empty!" << std::endl;
 		return {};
 	}
+	std::cout << "Depth image captured!" << std::endl;
 	return read32FC1Mat(imageDepth, scale);
 }
 

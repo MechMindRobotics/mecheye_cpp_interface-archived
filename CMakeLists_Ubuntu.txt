@@ -1,0 +1,25 @@
+project (MechEye_OpenInterface)
+cmake_minimum_required(VERSION 3.7)
+
+# Change following path to your installation path
+set(LIBZMQ_PATH /home/mm/env/libzmq)
+set(OPENCV_PATH /home/mm/env/opencv-3.4.5)
+
+include_directories(${LIBZMQ_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/include) 
+
+aux_source_directory(src SRC_LIST)
+aux_source_directory(sample SRC_LIST)
+aux_source_directory(json SRC_JSON_LIST)
+add_executable(MechEye_OpenInterface ${SRC_LIST} ${SRC_JSON_LIST})
+	
+target_link_libraries(MechEye_OpenInterface
+/usr/lib/x86_64-linux-gnu/libjsoncpp.so.1.7.4
+/usr/lib/x86_64-linux-gnu/libpcl_io.so.1.8.1
+/usr/lib/x86_64-linux-gnu/libboost_system.so
+${OPENCV_PATH}/build/lib/libopencv_core.so
+${OPENCV_PATH}/build/lib/libopencv_imgcodecs.so
+${LIBZMQ_PATH}/lib/libzmq.so)
+ 
+
+
+

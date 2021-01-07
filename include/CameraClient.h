@@ -3,7 +3,7 @@
 
 #include "ZmqClient.h"
 #include "PointCloudTools.h"
-#include "../json/json.h"
+#include "json/json.h"
 class CameraClient : public ZmqClient
 {
 public:
@@ -28,12 +28,12 @@ public:
 	std::string getCameraVersion(); //get the version of the camera
 	std::string getParameter(const std::string paraName, std::string& error); //exposed API for getting camera's parameters
 	std::string setParameter(const std::string paraName, double value); //exposed API for setting camera's parameters
-	Json::Value CameraClient::getCameraInfo();
+	Json::Value getCameraInfo();
 
 
 private:
 	//mmind::Response sendRequest(int command, double value);
-	std::string CameraClient::sendRequest(std::string command, int image_type);
+	std::string sendRequest(std::string command, int image_type);
 	Json::Value getCameraParameter(const std::string& propertyName);
 	std::string setCameraParameter(const std::string& propertyName, double value);
 	const uint16_t kImagePort = 5577;
