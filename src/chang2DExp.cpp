@@ -15,14 +15,13 @@ int sample::change2DExposureTime()
 		<< "Camera ID: " << camera.getCameraId() << std::endl
 		<< "Version: " << camera.getCameraVersion() << std::endl; //get and print some information about camera device
 
-	//unit for exposure time is ms, return value of setParameter is string.If successful, the return string will be empty, otherwise it prints error message.
 	std::cout<<camera.setParamater(para, 10)<<std::endl;
-	
-	//get the value of a parameter. The "error" would be empty if successful.
+	//unit for exposure time is ms, return value of setParameter is string.If successful, the return string will be empty, otherwise it prints error message.
+
 	std::cout<<camera.getParameter(para, error)<<std::endl;
 	if(!error.empty())
 	std::cout << "ERROR:" << error << std::endl;
-	
+	//get the value of a parameter. The "error" would be empty if successful.
 
 	
 

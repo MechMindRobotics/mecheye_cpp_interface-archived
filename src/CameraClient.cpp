@@ -2,9 +2,10 @@
 #include <opencv2/imgcodecs.hpp>
 #include "CameraCmd.h"
 #include <regex>
-
-namespace {
-
+#include <fstream>
+#include <iostream>
+namespace
+{
 	double readDouble(const std::string& data, const int pos)
 	{
 		if (pos + sizeof(double) > data.size()) return 0;
@@ -25,7 +26,21 @@ namespace {
 		return cv::Mat(data.size() - offset, 1, cv::DataType<uchar>::type,
 			const_cast<char*>((data.data() + offset)));
 	}
+	cv::Mat matC1ToC3(const cv::Mat& matC1)
+	{
+		if (matC1.empty())
+			return cv::Mat();
+		if (matC1.channels() != 1 || (matC1.rows % 3) != 0)
+			return cv::Mat();
 
+		std::vector<cv::Mat> channels;
+		for (int i = 0; i < 3; i++) {
+			channels.push_back(matC1(cv::Rect(0, i * matC1.rows / 3, matC1.cols, matC1.rows / 3)));
+		}
+		cv::Mat matC3;
+		cv::merge(channels, matC3);
+		return matC3;
+	}
 	cv::Mat read32FC1Mat(const std::string& data, size_t offset = 0)
 	{
 		if (data.empty()) return {};
@@ -38,6 +53,43 @@ namespace {
 			bias32F + cv::Mat(bias32F.size(), bias32F.type(), cv::Scalar::all(-Encode32FBias));
 		return scale == 0 ? cv::Mat() : mat32F / scale;
 	}
+	int writeTotxt(cv::Mat mat)
+	{
+		std::ofstream out("D:\\c++.txt");
+		if (out.is_open())
+			for (int i = 0; i < mat.rows; i++)
+			{
+				for (int j = 0; j < mat.cols; j++)
+				{
+					out << mat.at<cv::Vec3f>(i, j)[0]<<" ";
+					out << mat.at<cv::Vec3f>(i, j)[1]<<" ";
+					out << mat.at<cv::Vec3f>(i, j)[2]<<" ";
+				}
+				out << "\n";
+			}
+		out.close();
+		return 0;
+	}
+	cv::Mat read32FC3Mat(const std::string& data)
+	{
+		if (data.empty()) return cv::Mat();
+		const double scale = readDouble(data, 0);
+		cv::Mat matC1 = cv::imdecode(asMat(data, sizeof(double)), cv::ImreadModes::IMREAD_ANYDEPTH);
+		cv::Mat bias16UC3 = matC1ToC3(matC1);
+		cv::Mat bias32F = cv::Mat::zeros(bias16UC3.size(), CV_32FC3);
+		
+		bias16UC3.convertTo(bias32F, CV_32FC3);
+		cv::Mat depth32F =
+			bias32F + cv::Mat(bias32F.size(), bias32F.type(), cv::Scalar::all(-Encode32FBias));
+		cv::Mat rel = depth32F / scale;	
+		std::cout << scale << std::endl;
+		writeTotxt(rel);
+		/*cv::imwrite("D:\\1.png", bias16UC3);
+		cv::imwrite("D:\\2.png", bias32F);*/
+		//cv::imwrite("D:\\3.png", rel);
+		return rel;
+	}
+	
 }
 
 cv::Mat CameraClient::captureDepthImg()
@@ -53,7 +105,10 @@ cv::Mat CameraClient::captureDepthImg()
 
 cv::Mat CameraClient::captureColorImg()
 {
-	/*std::string error = setCameraParameter("camera2DExpTime", expTime);*/
+	/*if (expTime > 0)
+	{
+		std::string error = setCameraParameter("camera2DExpTime", expTime);
+	}*/
 	const mmind::Response response = sendRequest(NetCamCmd::CaptureImage, ImageType::COLOR);
 	if (response.imagergb().empty())
 	{
@@ -63,10 +118,19 @@ cv::Mat CameraClient::captureColorImg()
 	return cv::imdecode(asMat(response.imagergb()), cv::ImreadModes::IMREAD_COLOR);
 }
 
-pcl::PointCloud<pcl::PointXYZ> CameraClient::capturePointCloud(const CameraIntri& intri)
+pcl::PointCloud<pcl::PointXYZRGB> CameraClient::captureRgbPointCloud()
 {
-	cv::Mat depth = captureDepthImg();
-	return PointCloudTools::getCloudFromDepth(depth, intri);
+	const mmind::Response response = sendRequest(NetCamCmd::CaptureGratingImage, 4);
+	cv::Mat depthC3 = read32FC3Mat(response.imagegrating());
+	const cv::Mat color = captureColorImg();
+	return PointCloudTools::getRgbCloudFromDepthC3(depthC3, color);
+}
+
+pcl::PointCloud<pcl::PointXYZ> CameraClient::capturePointCloud()
+{
+	const mmind::Response response = sendRequest(NetCamCmd::CaptureGratingImage, 4);
+	cv::Mat depthC3 = read32FC3Mat(response.imagegrating());
+	return PointCloudTools::getCloudFromDepthC3(depthC3);
 }
 
 CameraIntri CameraClient::getCameraIntri()

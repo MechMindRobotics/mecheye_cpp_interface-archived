@@ -2,13 +2,14 @@
 #define CAMERACMD_H
 
 enum ImageType {
-    DEPTH = 1,
-    COLOR = 2,
-    COLOR_DEPTH = COLOR | DEPTH,
+	DEPTH = 1,
+	COLOR = 2,
+	COLOR_DEPTH = COLOR | DEPTH,
 };
 
 enum NetCamCmd {
 	CaptureImage = 0,
+	CaptureGratingImage = 8,
 	GetCameraIntri = 11,
 	GetCameraStatus = 19,
 	SetCameraParameter = 25,
