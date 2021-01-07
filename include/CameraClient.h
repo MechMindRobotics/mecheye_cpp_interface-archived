@@ -10,14 +10,16 @@ class CameraClient : public ZmqClient
 {
 public:
 	// Connect to camera before call other functions.
-	bool setIp(const std::string& ip) { return setAddr(ip, kImagePort, 60000); }
+	bool connect(const std::string& ip) { return setAddr(ip, kImagePort, 60000); }
 
 	// Depth image type: CV_32FC1
 	cv::Mat captureDepthImg();
 
 	// Color image type: CV_8UC3
 	// expTime : ms
-	cv::Mat captureColorImg();
+	cv::Mat captureColorImg();  
+
+	
 
 	// Units of point cloud: meter
 	pcl::PointCloud<pcl::PointXYZ> capturePointCloud();
