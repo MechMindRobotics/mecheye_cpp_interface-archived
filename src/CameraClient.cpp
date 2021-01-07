@@ -1,8 +1,8 @@
-#include "CameraClient.h"
+  #include "CameraClient.h"
 #include <opencv2/imgcodecs.hpp>
 #include "CameraCmd.h"
 #include <regex>
-
+#include "../json/json.h"
 namespace
 {
 	double readDouble(const std::string& data, const int pos)
@@ -17,6 +17,21 @@ namespace
 		}
 		double v;
 		memcpy(&v, str.c_str(), sizeof(double));
+		return v;
+	}
+
+	int readInt(const std::string& data, const int pos)
+	{
+		if (pos + sizeof(INT32) > data.size()) return 0;
+		std::string strFromQDataStream(data.data() + pos, sizeof(INT32));
+		std::string str;
+		str.resize(sizeof(INT32));
+		for (int i = 0; i < sizeof(INT32); i++)
+		{
+			str[i] = strFromQDataStream[sizeof(INT32) - 1 - i];
+		}
+		int v;
+		memcpy(&v, str.c_str(), sizeof(INT32));
 		return v;
 	}
 
@@ -40,12 +55,11 @@ namespace
 		cv::merge(channels, matC3);
 		return matC3;
 	}
-	cv::Mat read32FC1Mat(const std::string& data, size_t offset = 0)
+	cv::Mat read32FC1Mat(const std::string& data, double scale)
 	{
 		if (data.empty()) return {};
-		const double scale = readDouble(data, offset);
 		cv::Mat bias16U =
-			cv::imdecode(asMat(data, sizeof(double) + offset), cv::ImreadModes::IMREAD_ANYDEPTH);
+			cv::imdecode(asMat(data), cv::ImreadModes::IMREAD_ANYDEPTH);
 		cv::Mat bias32F = cv::Mat::zeros(bias16U.size(), CV_32FC1);
 		bias16U.convertTo(bias32F, CV_32FC1);
 		cv::Mat mat32F =
@@ -53,11 +67,10 @@ namespace
 		return scale == 0 ? cv::Mat() : mat32F / scale;
 	}
 	
-	cv::Mat read32FC3Mat(const std::string& data)
+	cv::Mat read32FC3Mat(const std::string& data, double scale)
 	{
 		if (data.empty()) return cv::Mat();
-		const double scale = readDouble(data, 0);
-		cv::Mat matC1 = cv::imdecode(asMat(data, sizeof(double)), cv::ImreadModes::IMREAD_ANYDEPTH);
+		cv::Mat matC1 = cv::imdecode(asMat(data), cv::ImreadModes::IMREAD_ANYDEPTH);
 		cv::Mat bias16UC3 = matC1ToC3(matC1);
 		cv::Mat bias32F = cv::Mat::zeros(bias16UC3.size(), CV_32FC3);
 		
@@ -67,76 +80,126 @@ namespace
 		cv::Mat rel = depth32F / scale;	
 		return rel;
 	}
+
+	vector<string> splitStr(const string& str, const string& delim) {
+		vector<string> res;
+		if ("" == str) return res;
+		char* strs = new char[str.length() + 1];
+		strcpy(strs, str.c_str());
+
+		char* d = new char[delim.length() + 1];
+		strcpy(d, delim.c_str());
+
+		char* p = strtok(strs, d);
+		while (p) {
+			string s = p;
+			res.push_back(s);
+			p = strtok(NULL, d);
+		}
+
+		return res;
+	}
+
+	vector<int> find_number_pos(const string &str) {
+		vector<int> rel;
+		if (str.size() == 0) {
+			rel.push_back(-1);
+			rel.push_back(-1);
+		}
+		else {
+			for (int i = 0; i < str.size(); i++)
+			{
+				if (str[i] >= '0' && str[i] <= '9') {
+					rel.push_back(i);
+					break;
+				}
+			}
+			for (int i = str.size() - 1; i >= 0; i--)
+			{
+				if (str[i] >= '0' && str[i] <= '9') {
+					rel.push_back(i);
+					break;
+				}
+			}
+		}
+		return rel;
+	}
 	
 }
 
 cv::Mat CameraClient::captureDepthImg()
 {
-	const mmind::Response response = sendRequest(NetCamCmd::CaptureImage, ImageType::DEPTH);
-	if (response.imagedepth().empty())
+	std::string response = sendRequest(Command::CaptureImage, ImageType::DEPTH);
+	int jsonSize = readInt(response,0);
+	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
+	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
+	int imageBegin = SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE + sizeof(INT32);
+	std::string imageDepth = response.substr(imageBegin, imageSize);
+	if (imageDepth.size() == 0)
 	{
 		std::cout << "Client depth image is empty!" << std::endl;
 		return {};
 	}
-	return read32FC1Mat(response.imagedepth(), 2);
+	return read32FC1Mat(imageDepth, scale);
 }
 
 cv::Mat CameraClient::captureColorImg()
 {
 	
-	const mmind::Response response = sendRequest(NetCamCmd::CaptureImage, ImageType::COLOR);
-	if (response.imagergb().empty())
+	std::string response = sendRequest(Command::CaptureImage, ImageType::COLOR);
+	int jsonSize = readInt(response, 0);
+	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
+	int imageBegin = SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE + sizeof(INT32);
+	std::string imageRGB = response.substr(imageBegin, imageSize);
+	if (imageRGB.size() == 0)
 	{
 		std::cout << "Client color image is empty!" << std::endl;
 		return {};
 	}
-	return cv::imdecode(asMat(response.imagergb()), cv::ImreadModes::IMREAD_COLOR);
+	std::cout << "Color image captured!" << std::endl;
+	return cv::imdecode(asMat(imageRGB), cv::ImreadModes::IMREAD_COLOR);
 }
 
 pcl::PointCloud<pcl::PointXYZRGB> CameraClient::captureRgbPointCloud()
 {
-	const mmind::Response response = sendRequest(NetCamCmd::CaptureGratingImage, 4);
-	cv::Mat depthC3 = read32FC3Mat(response.imagegrating());
+	std::string response = sendRequest(Command::CaptureGratingImage, 4);
+	int jsonSize = readInt(response, 0);
+	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
+	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
+	int imageBegin = SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE + sizeof(INT32);
+	std::string imageDepth = response.substr(imageBegin, imageSize);
+	cv::Mat depthC3 = read32FC3Mat(imageDepth,scale);
 	const cv::Mat color = captureColorImg();
 	return PointCloudTools::getRgbCloudFromDepthC3(depthC3, color);
 }
 
 pcl::PointCloud<pcl::PointXYZ> CameraClient::capturePointCloud()
 {
-	const mmind::Response response = sendRequest(NetCamCmd::CaptureGratingImage, 4);
-	cv::Mat depthC3 = read32FC3Mat(response.imagegrating());
+	std::string response = sendRequest(Command::CaptureGratingImage, 4);
+	int jsonSize = readInt(response, 0);
+	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
+	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
+	int imageBegin = SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE + sizeof(INT32);
+	std::string imageDepth = response.substr(imageBegin, imageSize);
+	cv::Mat depthC3 = read32FC3Mat(imageDepth, scale);
 	return PointCloudTools::getCloudFromDepthC3(depthC3);
 }
 
 CameraIntri CameraClient::getCameraIntri()
 {
-	const mmind::Response response = sendRequest(NetCamCmd::GetCameraIntri, 0);
-	std::cout << "Camera intrinsics: " << std::endl
-		<< response.camintri() << std::endl;
-
-	const auto start = response.camintri().find_last_of("[");
-	const auto end = response.camintri().find_last_of("]");
-	if (start == std::string::npos || end == std::string::npos || end < start)
-	{
-		std::cout << "Wrong camera intrinsics." << std::endl;
-		return{};
-	}
-	const std::string intriStr = response.camintri().substr(start + 1, end - start - 1);
-
-	std::regex re(",");
-	std::vector<std::string> intriValue(std::sregex_token_iterator(intriStr.begin(),
-		intriStr.end(), re, -1), std::sregex_token_iterator());
-	if (intriValue.size() != 4)
-	{
-		std::cout << "Wrong intrinsics value" << std::endl;
-		return{};
-	}
-
+	std::string response = sendRequest(Command::GetCameraIntri, 0);	
+	Json::Reader reader;
+	Json::Value info;
+	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), info);
+	Json::Value intriValue = info["camera_intri"]["intrinsic"];
+	std::string originStr = intriValue.toStyledString();
+	vector<int> pos = find_number_pos(originStr);
+	vector<std::string> intriArray = splitStr(originStr.substr(pos[0],pos[1] - pos[0]), ",");
 	CameraIntri intri;
-	intri.fx = std::stod(intriValue[0].c_str());
-	intri.fy = std::stod(intriValue[1].c_str());
-	intri.u = std::stod(intriValue[2].c_str());
-	intri.v = std::stod(intriValue[3].c_str());
+	intri.fx = std::stod(intriArray[0].c_str());
+	intri.fy = std::stod(intriArray[1].c_str());
+	intri.u = std::stod(intriArray[2].c_str());
+	intri.v = std::stod(intriArray[3].c_str());
 
 	std::cout.precision(17);
 	std::cout << "fx = " << intri.fx << std::endl
@@ -149,22 +212,24 @@ CameraIntri CameraClient::getCameraIntri()
 
 std::string CameraClient::getCameraId()
 {
-	return  getCameraStatus().eyeid();
-}
-
-std::string CameraClient::getCameraIp()
-{
-	return  getCameraStatus().ip();
+	return  getCameraInfo()["eyeId"].toStyledString();
 }
 
 std::string CameraClient::getCameraVersion()
 {
-	return  getCameraStatus().version();
+	return  getCameraInfo()["version"].toStyledString();
 }
 
 std::string CameraClient::getParameter(std::string paraName, std::string& error)
 {
-	return getCameraParameter(paraName, error);
+	Json::Value configs =  getCameraParameter(paraName);
+	if (configs.isMember(paraName)) {
+		return configs[paraName].toStyledString();
+	}
+	else {
+		error = "Property not exist";
+		return "";
+	}
 }
 
 std::string  CameraClient::setParameter(std::string paraName, double value)
@@ -173,48 +238,50 @@ std::string  CameraClient::setParameter(std::string paraName, double value)
 	return rel;
 }
 
-mmind::CameraStatus CameraClient::getCameraStatus()
+Json::Value CameraClient::getCameraInfo()
 {
-	const mmind::Response response = sendRequest(NetCamCmd::GetCameraStatus, 0);
-	mmind::CameraStatus cameraStatus;
-	if (!cameraStatus.ParseFromString(response.camerastatus()))
-	{
-		std::cout << "Camera status is empty!";
-		return{};
-	}
-	return cameraStatus;
+	Json::Reader reader;
+	Json::Value info;
+    std::string response = sendRequest(Command::GetCameraInfo, 0);
+	reader.parse(response.substr(SIZE_OF_JSON,response.size() - SIZE_OF_JSON), info);
+	return info["camera_info"];
 }
 
-std::string CameraClient::getCameraParameter(const std::string& propertyName, std::string& error)
+Json::Value CameraClient::getCameraParameter(const std::string& propertyName)
 {
-	const mmind::Response response = sendRequest(NetCamCmd::GetCameraParameter, propertyName);
-	std::string value = response.parametervalue();
-	error = response.error();
-	return value;
+	Json::Value request;
+	Json::FastWriter fwriter;
+	Json::Value reply;
+	Json::Reader reader;
+	request[Service::cmd] = Command::GetCameraParams;
+	request[Service::property_name] = propertyName;
+	std::string response = sendReq(fwriter.write(request));;
+	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), reply);
+	Json::Value allConfigs = reply["camera_config"]["configs"][0];
+	return allConfigs;
 }
 
 std::string CameraClient::setCameraParameter(const std::string& propertyName, double value)
 {
-	mmind::Request request;
-	request.set_command(NetCamCmd::SetCameraParameter);
-	request.set_valuestring(propertyName);
-	request.set_valuedouble(value);
-	mmind::Response response = sendReq<mmind::Response>(request);
-	return response.error();
+	Json::Value request;
+	Json::FastWriter fwriter;
+	Json::Value reply;
+	Json::Reader reader;
+	request[Service::cmd] = Command::SetCameraParams;
+	request[Service::camera_config][propertyName] = value;
+	std::string response = sendReq(fwriter.write(request));
+	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), reply);
+	if (reply.isMember("err_msg"))
+		return reply["err_msg"].toStyledString();
+	return "";
 }
 
-mmind::Response CameraClient::sendRequest(int command, double value)
-{
-	mmind::Request request;
-	request.set_command(command);
-	request.set_valuedouble(value);
-	return sendReq<mmind::Response>(request);
-}
 
-mmind::Response CameraClient::sendRequest(int command, const std::string& value)
+std::string CameraClient::sendRequest(std::string command, int image_type)
 {
-	mmind::Request request;
-	request.set_command(command);
-	request.set_valuestring(value);
-	return sendReq<mmind::Response>(request);
+	Json::Value req;
+	Json::FastWriter fwriter;
+	req[Service::cmd] = Json::Value(command);
+	req[Service::image_type] = Json::Value(image_type);
+	return sendReq(fwriter.write(req));
 }

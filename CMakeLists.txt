@@ -20,8 +20,8 @@ ${INCLUDE_PATH_ZMQ} ${INCLUDE_PATH_PROTOBUF} ${INCLUDE_PATH_EIGEN} ${INCLUDE_PAT
 
 aux_source_directory(src SRC_LIST)
 aux_source_directory(sample SRC_LIST)
-aux_source_directory(proto SRC_PROTO_LIST)
-add_executable(MechEye_OpenInterface ${SRC_LIST} ${SRC_PROTO_LIST})
+aux_source_directory(json SRC_JSON_LIST)
+add_executable(MechEye_OpenInterface ${SRC_LIST} ${SRC_JSON_LIST})
 	
 target_link_libraries(MechEye_OpenInterface
 debug ${LIBRARY_PATH_DEBUG}/opencv_core320d.lib 	 optimized ${LIBRARY_PATH}/opencv_core320.lib

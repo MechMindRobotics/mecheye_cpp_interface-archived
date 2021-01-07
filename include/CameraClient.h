@@ -3,9 +3,7 @@
 
 #include "ZmqClient.h"
 #include "PointCloudTools.h"
-#include "image.pb.h"
-#include "cameraStatus.pb.h"
-
+#include "../json/json.h"
 class CameraClient : public ZmqClient
 {
 public:
@@ -16,7 +14,6 @@ public:
 	cv::Mat captureDepthImg();
 
 	// Color image type: CV_8UC3
-	// expTime : ms
 	cv::Mat captureColorImg();  
 
 	
@@ -28,19 +25,19 @@ public:
 	CameraIntri getCameraIntri();
 
 	std::string getCameraId(); //get camera's id
-	std::string getCameraIp(); //get ip address of camera
 	std::string getCameraVersion(); //get the version of the camera
 	std::string getParameter(const std::string paraName, std::string& error); //exposed API for getting camera's parameters
 	std::string setParameter(const std::string paraName, double value); //exposed API for setting camera's parameters
+	Json::Value CameraClient::getCameraInfo();
 
 
 private:
-	mmind::Response sendRequest(int command, double value);
-	mmind::Response sendRequest(int command, const std::string& value);
-	mmind::CameraStatus getCameraStatus();
-	std::string getCameraParameter(const std::string& propertyName, std::string& error);
+	//mmind::Response sendRequest(int command, double value);
+	std::string CameraClient::sendRequest(std::string command, int image_type);
+	Json::Value getCameraParameter(const std::string& propertyName);
 	std::string setCameraParameter(const std::string& propertyName, double value);
 	const uint16_t kImagePort = 5577;
+	const int SIZE_OF_JSON = 4;
 };
 
 
