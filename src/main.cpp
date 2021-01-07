@@ -3,10 +3,8 @@
 int main(int argc, char *argv[])
 {
 	sample sp;
-	sp.change2DExposureTime();
-	sp.change3DExposureTime();
-	sp.get2DImage();
-	sp.getDepthImage();
-	sp.getPointCloud();
+	sp.parameter();
+	sp.ImgAndCloud();
+	system("pause");
     return 0;
 }

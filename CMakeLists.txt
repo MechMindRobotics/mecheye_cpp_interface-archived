@@ -19,6 +19,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/proto ${CMAKE_CURRENT_SOURCE_DIR
 ${INCLUDE_PATH_ZMQ} ${INCLUDE_PATH_PROTOBUF} ${INCLUDE_PATH_EIGEN} ${INCLUDE_PATH_PCL} ${INCLUDE_PATH_BOOST})
 
 aux_source_directory(src SRC_LIST)
+aux_source_directory(sample SRC_LIST)
 aux_source_directory(proto SRC_PROTO_LIST)
 add_executable(MechEye_OpenInterface ${SRC_LIST} ${SRC_PROTO_LIST})
 	
