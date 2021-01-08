@@ -18,6 +18,7 @@ target_link_libraries(MechEye_OpenInterface
 /usr/lib/x86_64-linux-gnu/libboost_system.so
 ${OPENCV_PATH}/build/lib/libopencv_core.so
 ${OPENCV_PATH}/build/lib/libopencv_imgcodecs.so
+${OPENCV_PATH}/build/lib/libopencv_highgui.so.3.4.5
 ${LIBZMQ_PATH}/lib/libzmq.so)
  
 

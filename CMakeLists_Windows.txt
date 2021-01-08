@@ -34,7 +34,8 @@ debug ${LIBRARY_PATH_DEBUG}/libboost_date_time-vc140-mt-gd-1_62.lib  optimized $
 debug ${LIBRARY_PATH_DEBUG}/libboost_filesystem-vc140-mt-gd-1_62.lib optimized ${LIBRARY_PATH}/libboost_filesystem-vc140-mt-1_62.lib
 debug ${LIBRARY_PATH_DEBUG}/libboost_iostreams-vc140-mt-gd-1_62.lib  optimized ${LIBRARY_PATH}/libboost_iostreams-vc140-mt-1_62.lib
 debug ${LIBRARY_PATH_DEBUG}/libboost_system-vc140-mt-gd-1_62.lib 	 optimized ${LIBRARY_PATH}/libboost_system-vc140-mt-1_62.lib
-debug ${LIBRARY_PATH_DEBUG}/libboost_thread-vc140-mt-gd-1_62.lib 	 optimized ${LIBRARY_PATH}/libboost_thread-vc140-mt-1_62.lib)
+debug ${LIBRARY_PATH_DEBUG}/libboost_thread-vc140-mt-gd-1_62.lib 	 optimized ${LIBRARY_PATH}/libboost_thread-vc140-mt-1_62.lib
+debug ${LIBRARY_PATH_DEBUG}/opencv_highgui320.lib    optimized ${LIBRARY_PATH}/opencv_highgui320.lib)
  
 
 
