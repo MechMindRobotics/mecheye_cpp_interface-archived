@@ -1,13 +1,11 @@
 # Mech-Eye Interface
 Official C++ interface for Mech-Eye cameras.
 
-If you are using Mech-Eye cameras with firmware version older than 1.0.0, please switch to Branch 0.4.0.
-
-If you want to run this SDK on Linux OSes, pelase switch to Branch Ubuntu-1.0.0.
+If you are using Mech-Eye cameras with firmware version older than 1.0.0, please switch to Tag V0.4.0(only supported for Windows).
 
 ## Installation
 
-This part tells you how to configure and run project on Windows.
+This part tells you how to configure and run sample project on Windows.
 
 #### Prerequisites
 
