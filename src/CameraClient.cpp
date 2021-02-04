@@ -164,7 +164,7 @@ cv::Mat CameraClient::captureColorImg()
 
 pcl::PointCloud<pcl::PointXYZRGB> CameraClient::captureRgbPointCloud()
 {
-	std::string response = sendRequest(Command::CaptureGratingImage, 4);
+	std::string response = sendRequest(Command::CaptureImage, ImageType::MatXYZ);
 	int jsonSize = readInt(response, 0);
 	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
 	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
