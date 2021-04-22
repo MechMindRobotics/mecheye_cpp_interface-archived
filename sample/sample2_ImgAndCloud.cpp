@@ -25,10 +25,11 @@ int sample::ImgAndCloud()
 	// Camera ip should be modified to actual ip address.
 	const std::string cameraIp = "192.168.3.168";
 	if (!camera.connect(cameraIp)) return -1; //return -1 if connection to camera fails
-
 	std::cout 
 		<< "Camera ID: " << camera.getCameraId() << std::endl
-		<< "Version: " << camera.getCameraVersion() << std::endl; //get and print some information about camera device
+		<< "Version: " << camera.getCameraVersion() << std::endl 
+		<< "Color Image Size: " << camera.getColorImgSize() << std::endl
+		<< "Depth Image Size: " << camera.getDepthImgSize() << std::endl; //get and print some information about camera device
 
 	cv::Mat color = camera.captureColorImg(); //capture a 2d image and it will be stored as cv matrix
 	if (color.empty()) std::cout << "empty error" << std::endl;

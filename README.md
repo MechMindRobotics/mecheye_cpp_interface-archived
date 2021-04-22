@@ -119,6 +119,10 @@ There are two main classes: CameraClient and ZmqClient. CameraClient is subclass
 
   * **getCameraVersion()**: get camera's version number.
 
+  * **getColorImgSize()** : get the height and width of the color image to be captured.
+  
+  * **getDepthImgSize()** : get the height and width of the depth image to be captured.
+  
   * **getParameter()** : get the value of a specific parameter in camera.
 
   * **setParameter()** : set the value of a specific parameter in camera.
@@ -150,8 +154,11 @@ if (!camera.connect(cameraIp)) return -1; //return -1 if connection to camera fa
 Then, we can get some brief info about camera:
 
 ```c++
-std::cout << "Camera ID: " << camera.getCameraId() << std::endl
-		<< "Version: " << camera.getCameraVersion() << std::endl;
+std::cout 
+	<< "Camera ID: " << camera.getCameraId() << std::endl
+	<< "Version: " << camera.getCameraVersion() << std::endl 
+	<< "Color Image Size: " << camera.getColorImgSize() << std::endl
+	<< "Depth Image Size: " << camera.getDepthImgSize() << std::endl; 
 ```
 
 Finally, we can set and get the value of a specific parameter, in this case, we choose exposure mode and time for color image:
@@ -161,7 +168,6 @@ std::cout << camera.setParameter("scan2dExposureMode",0) << std::endl;
 std::cout << camera.getParameter("scan2dExposureMode", error) << std::endl;
 std::cout << camera.setParameter("scan2dExposureTime", 20) << std::endl;
 std::cout << camera.getParameter("scan2dExposureTime", error) << std::endl;
-
 ```
 
 ##### sample2_ImgAndCloud.cpp
