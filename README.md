@@ -1,20 +1,20 @@
 # Mech-Eye Interface
 Official C++ interface for Mech-Eye cameras.
 
-If you are using Mech-Eye cameras with firmware version older than 1.0.0, please switch to Tag V0.4.0(only supported for Windows).
+If you are using Mech-Eye cameras with firmware version older than 1.0.0, please switch to Tag V0.4.0(only supported on Windows). 
+
+If you are using Mech-Eye cameras with firmware version 1.0.X or 1.1.X, please switch to Tag V1.0.0.
 
 ## Installation
 
-This part tells you how to configure and run sample project on Windows.
+This part tells you how to configure and run sample projects on Windows.
 
 #### Prerequisites
 
-In Order to use this interface you will need the following Prerequisites installed:
+In order to use this interface you will need the following Prerequisites installed:
 1. [Cmake](https://cmake.org/) -Version > 3.7 is required.
 2. [Visual Studio](https://visualstudio.microsoft.com/) -Version > 2015 is recommended.
 #### Using CMake to configure 
-
-
 
 1. Clone the project and select project folder in Cmake. Select where you want to build.
 
@@ -30,19 +30,19 @@ In Order to use this interface you will need the following Prerequisites install
 
 4. Click **Generate** and then **Open Project** and project will be opened in Visual Studio.
 
-5. Add all extrated .dll files in Step 3 to System Path.
 
 ## Quick Start
 
-Open the Visual Studio.
+1. Open the Visual Studio.
 
-Modify the IP address according to the actual address in every sample_xxx.cpp files and build it.
+2. Modify the IP address according to the actual address in every sample_xxx.cpp files and build it. Then VS will generate an .exe file in working directory, usually **.\build\Debug\MechEye_OpenInterface.exe**.
 
 ![ip](./img/ip.jpg)
 
-Then VS will generate an exe file, usually **.\build\Debug\MechEye_OpenInterface.exe**.
 
-Run this program and it will capture pictures and point clouds in the folder **D:/test/**.
+3. Add all extrated .dll files from **dependencies for MechEye_OpenInterface.7z** to the working directory.
+
+4. Run this .exe file and it will capture images and point clouds in the working directory.
 
 ## Project hierarchy
 
@@ -89,7 +89,7 @@ Mech-Eye_interface
 
 * **json**
 
-  Since C++ standard libraries don't contain any  json libraries, so this folder contains a third-party library for json.
+  Since C++ standard libraries don't contain any json libraries, this folder contains a third-party library for json.
 
 * **sample**
 
@@ -127,7 +127,7 @@ There are two main classes: CameraClient and ZmqClient. CameraClient is subclass
 
   * **setParameter()** : set the value of a specific parameter in camera.
 
-    **Attention**: Please be sure to know the meaning of your setting of parameters, **wrong setting could cause some errors in the interfaces!**
+    **Attention**: Please be sure to know the meaning of your setting of parameters, **wrong setting could cause error!**
 
   * **captureRgbPointCloud()** : get a point cloud as pcl::PointXYZRGB
 
@@ -138,14 +138,14 @@ The original project provides 2 samples to show how to use interfaces. They are 
 
 ##### sample1_parameter.cpp
 
-This sample mainly shows how to set camera's paramters like exposure time.
+This sample shows how to set camera's paramters.
 
-First, we need to know the actual ip address of camera and set it, and then connect:
+First, we need to know the actual IP address of camera and set it, and then connect:
 
 ```c++
 CameraClient camera;
 std::string error;
-// Camera ip should be modified to actual ip address.
+// Camera ip should be modified to actual IP address.
 const std::string cameraIp = "192.168.3.146";
 if (!camera.connect(cameraIp)) return -1; //return -1 if connection to camera fails
 
@@ -161,7 +161,7 @@ std::cout
 	<< "Depth Image Size: " << camera.getDepthImgSize() << std::endl; 
 ```
 
-Finally, we can set and get the value of a specific parameter, in this case, we choose exposure mode and time for color image:
+Finally, we can set and get the value of a specific parameter, in this case, we choose exposure mode and time for 2D image:
 
 ```c++
 std::cout << camera.setParameter("scan2dExposureMode",0) << std::endl;
@@ -172,6 +172,4 @@ std::cout << camera.getParameter("scan2dExposureTime", error) << std::endl;
 
 ##### sample2_ImgAndCloud.cpp
 
-After connected to the camera, the program can capture color images and depth images by camera, and also point clouds. We use PCL to store and process point clouds.
-
-This sample capture color images, depth images and color point clouds and then save them on the disk.
+This sample capture color images, depth images and point clouds and then save them on the disk.
