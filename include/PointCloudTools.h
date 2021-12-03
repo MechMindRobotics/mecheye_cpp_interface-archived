@@ -13,7 +13,9 @@ struct CameraIntri
     double fy = 0.0;
     double u = 0.0;
     double v = 0.0;
-    bool isZero() const { return (fx == 0.0 && fy == 0.0 && u == 0.0 && v == 0.0); }
+    bool isZero() const { return (isApprox0(fx) && isApprox0(fy) && isApprox0(u) && isApprox0(v)); }
+private:
+    bool isApprox0(double d) const { return std::abs(d) <= DBL_EPSILON; }
 };
 
 class PointCloudTools
