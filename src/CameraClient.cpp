@@ -126,11 +126,16 @@ namespace
 		return rel;
 	}
 	
+	bool isResponseValid(const std::string& response)
+	{
+		return response.find("Unsupported command.") == std::string::npos;
+	}
 }
 
 cv::Mat CameraClient::captureDepthImg()
 {
 	std::string response = sendRequest(Command::CaptureImage, ImageType::DEPTH);
+	if (response.empty()) return cv::Mat();
 	int jsonSize = readInt(response,0);
 	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
 	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
@@ -147,8 +152,8 @@ cv::Mat CameraClient::captureDepthImg()
 
 cv::Mat CameraClient::captureColorImg()
 {
-	
 	std::string response = sendRequest(Command::CaptureImage, ImageType::COLOR);
+	if (response.empty()) return cv::Mat();
 	int jsonSize = readInt(response, 0);
 	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
 	int imageBegin = SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE + sizeof(INT32);
@@ -165,6 +170,7 @@ cv::Mat CameraClient::captureColorImg()
 pcl::PointCloud<pcl::PointXYZRGB> CameraClient::captureRgbPointCloud()
 {
 	std::string response = sendRequest(Command::CaptureImage, ImageType::MatXYZ);
+	if (response.empty()) return {};
 	int jsonSize = readInt(response, 0);
 	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
 	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
@@ -178,6 +184,7 @@ pcl::PointCloud<pcl::PointXYZRGB> CameraClient::captureRgbPointCloud()
 pcl::PointCloud<pcl::PointXYZ> CameraClient::capturePointCloud()
 {
 	std::string response = sendRequest(Command::CaptureImage, ImageType::MatXYZ);
+	if (response.empty()) return {};
 	int jsonSize = readInt(response, 0);
 	double scale = readDouble(response, jsonSize + SIZE_OF_JSON);
 	int imageSize = readInt(response, SIZE_OF_JSON + jsonSize + SIZE_OF_SCALE);
@@ -190,6 +197,7 @@ pcl::PointCloud<pcl::PointXYZ> CameraClient::capturePointCloud()
 CameraIntri CameraClient::getCameraIntri()
 {
 	std::string response = sendRequest(Command::GetCameraIntri, 0);	
+	if (response.empty()) return {};
 	Json::Reader reader;
 	Json::Value info;
 	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), info);
@@ -245,6 +253,7 @@ Json::Value CameraClient::getCameraInfo()
 	Json::Reader reader;
 	Json::Value info;
     std::string response = sendRequest(Command::GetCameraInfo, 0);
+	if (response.empty()) return {};
 	reader.parse(response.substr(SIZE_OF_JSON,response.size() - SIZE_OF_JSON), info);
 	return info["camera_info"];
 }
@@ -302,6 +311,7 @@ Json::Value CameraClient::getImgSize()
 	Json::Reader reader;
 	Json::Value info;
     std::string response = sendRequest(Command::GetImageFormat, 0);
+	if (response.empty()) return {};
 	reader.parse(response.substr(SIZE_OF_JSON,response.size() - SIZE_OF_JSON), info);
 	return info[Service::image_format];
 }
@@ -312,5 +322,11 @@ std::string CameraClient::sendRequest(std::string command, int image_type)
 	Json::FastWriter fwriter;
 	req[Service::cmd] = Json::Value(command);
 	req[Service::image_type] = Json::Value(image_type);
-	return sendReq(fwriter.write(req));
+	std::string response = sendReq(fwriter.write(req));
+	if(!isResponseValid(response))
+	{
+		std::cout << command + ": Unsupported command! Please make sure to send the correct command!" << std::endl;
+		return "";
+	}
+	return response;
 }
