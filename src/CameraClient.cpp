@@ -259,7 +259,8 @@ Json::Value CameraClient::getCameraParameter(const std::string& propertyName)
 	request[Service::property_name] = propertyName;
 	std::string response = sendReq(fwriter.write(request));;
 	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), reply);
-	Json::Value allConfigs = reply["camera_config"]["configs"][0];
+	const int configId = reply["camera_config"]["current_idx"].asInt();
+	Json::Value allConfigs = reply["camera_config"]["configs"][configId];
 	return allConfigs;
 }
 
