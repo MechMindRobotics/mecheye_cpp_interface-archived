@@ -276,8 +276,13 @@ std::string CameraClient::setCameraParameter(const std::string& propertyName, do
 	std::string response = sendReq(fwriter.write(request));
 	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), reply);
 	if (reply.isMember("err_msg"))
-		return reply["err_msg"].toStyledString();
-	return "";
+	{
+		if(reply["err_msg"] != Json::Value(""))
+		{
+			return reply["err_msg"].toStyledString();			
+		}
+	}		
+	return "Set " + propertyName + " successfully!";
 }
 
 cv::Size CameraClient::getColorImgSize()
