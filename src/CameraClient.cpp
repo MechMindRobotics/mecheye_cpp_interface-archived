@@ -272,6 +272,7 @@ std::string CameraClient::setCameraParameter(const std::string& propertyName, do
 	Json::Reader reader;
 	request[Service::cmd] = Command::SetCameraParams;
 	request[Service::camera_config][propertyName] = value;
+	request[Service::persistent] = true;
 	std::string response = sendReq(fwriter.write(request));
 	reader.parse(response.substr(SIZE_OF_JSON, response.size() - SIZE_OF_JSON), reply);
 	if (reply.isMember("err_msg"))
