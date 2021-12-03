@@ -32,47 +32,34 @@ int sample::ImgAndCloud()
 		<< "Depth Image Size: " << camera.getDepthImgSize() << std::endl; //get and print some information about camera device
 
 	cv::Mat color = camera.captureColorImg(); //capture a 2d image and it will be stored as cv matrix
-	if (color.empty()) std::cout << "empty error" << std::endl;
+	if (color.empty()) std::cout << "The color image is empty!" << std::endl;
 	else
 	{
-		cv::imwrite("./color.jpg", color); //save the color image to the disk
+		cv::imwrite("d://color.jpg", color); //save the color image to the disk
 	}
 
 	cv::Mat depth = camera.captureDepthImg(); //capture a depth image and it will be stored as cv matrix
-	// cv::imwrite does not support 32F, so store the depth image through cv::FileStorage
-	std::string savePath("./images.yml"); //set the target path you want to save the depth image, end with .yml
-	cv::FileStorage fs(savePath, cv::FileStorage::WRITE); //initialize FileStorage
-	if (depth.empty()) std::cout << "empty error" << std::endl;
+	if (depth.empty()) std::cout << "The depth image is empty!" << std::endl;
 	else
 	{
+		std::string savePath("d://images.yml"); //set the target path you want to save the depth image, end with .yml
+		cv::FileStorage fs(savePath, cv::FileStorage::WRITE); //initialize FileStorage
 		write(fs, "depth", depth); //save the depth image to the disk
 	}
 
 	std::cout << "Generating point cloud image" << std::endl;
 	const pcl::PointCloud<pcl::PointXYZRGB> rgbCloud = camera.captureRgbPointCloud();
-	PointCloudTools::saveRgbPointCloud("./rgbCloud.ply", rgbCloud); //can be .ply or .pcd, both works.
+	PointCloudTools::saveRgbPointCloud("d://rgbCloud.ply", rgbCloud); //can be .ply or .pcd, both works.
 
     // Read the images from saved files and show them
 	std::cout << "Rendering images......." << std::endl;
-	cv::Mat savedColorImage = cv::imread("./color.jpg"); //read out the saved color image
-
-	if (savedColorImage.empty()) std::cout << "Save failed" << std::endl;
+	cv::Mat savedColorImage = cv::imread("d://color.jpg"); //read out the saved color image
+	if (savedColorImage.empty()) std::cout << "Fail to save the color image!" << std::endl;
 	else {
 		cv::namedWindow("saved color image", cv::WINDOW_NORMAL); //create a window for showing images
 		cv::imshow("saved color image", savedColorImage);
 		cv::waitKey(10000); //show the color image and wait for 10s or key inputs
 	}
-	
-	cv::Mat savedDepthImage;
-	fs.open(savePath, cv::FileStorage::READ); //reopen the saved .yml file and get ready for reading out the saved depth image
-	fs["depth"] >> savedDepthImage; //read out the depth image
-	if (savedDepthImage.empty()) std::cout << "Save failed" << std::endl;
-	else {
-		cv::namedWindow("saved depth image", cv::WINDOW_NORMAL); //create a window for showing images
-		cv::imshow("saved depth image", to8U(savedDepthImage)); //cv::imshow does not support 32F format, so convert it to 8U first 
-		cv::waitKey(10000); //show the depth image and wait for 10s or key inputs
-	}
-
 	cv::destroyAllWindows();
 
 	return 0;
