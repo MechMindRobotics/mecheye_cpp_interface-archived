@@ -1,9 +1,7 @@
 # Mech-Eye Interface
 Official C++ interface for Mech-Eye cameras.
 
-If you are using Mech-Eye cameras with firmware version older than 1.0.0, please switch to Tag V0.4.0(only supported on Windows). 
-
-If you are using Mech-Eye cameras with firmware version 1.0.X or 1.1.X, please switch to Tag V1.0.0.
+Please select the  proper branch corresponding to the camera firmware version.
 
 ## Installation
 
