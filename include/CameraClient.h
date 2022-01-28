@@ -29,29 +29,26 @@ public:
 	// Color image type: CV_8UC3
 	cv::Mat captureColorImg();  
 
-	
-
 	// Units of point cloud: meter
 	pcl::PointCloud<pcl::PointXYZ> capturePointCloud();
 	pcl::PointCloud<pcl::PointXYZRGB> captureRgbPointCloud();
 
 	CameraIntri getCameraIntri();
 
-	std::string getCameraId(); //get camera's id
-	std::string getCameraVersion(); //get the version of the camera
-	std::string getParameter(const std::string paraName, std::string& error); //exposed API for getting camera's parameters
-	std::string setParameter(const std::string paraName, double value); //exposed API for setting camera's parameters
+	std::string getCameraId();
+	std::string getCameraVersion();
+	std::string getParameter(const std::string& paraName, std::string& error);
+	std::string setParameter(const std::string& paraName, double value);
+	std::string setParameter(const std::string& propertyName, const std::vector<int>& value);
 	Json::Value getCameraInfo();
 	cv::Size getColorImgSize();
 	cv::Size getDepthImgSize();
 
-
 private:
-	//mmind::Response sendRequest(int command, double value);
-	std::string sendRequest(std::string command, int image_type);
+	std::string sendRequest(const Json::Value& sendRequest, Json::Value& info, std::string& error);
+    bool sendImageRequest(const std::string& command, int imageType, std::string& image, double& scale);
+	std::string sendParamterRequest(const Json::Value& request, const std::string& paramter);
 	Json::Value getImgSize();
-	Json::Value getCameraParameter(const std::string& propertyName);
-	std::string setCameraParameter(const std::string& propertyName, double value);
 	const uint16_t kImagePort = 5577;
 	const int SIZE_OF_JSON = 4;
 };
