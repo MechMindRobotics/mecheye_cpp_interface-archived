@@ -1,7 +1,11 @@
-# Mech-Eye Interface
-Official C++ interface for Mech-Eye cameras.
+#  This repository is archived.
+
+## It's highly recommended to use the latest version of [Mech-Eye C++ API](https://github.com/MechMindRobotics/mecheye_cpp_samples).
 
 Please select the  proper branch corresponding to the camera firmware version.
+
+If the camera firmware version is greater than or equal to 1.5.0, please use the latest version of [Mech-Eye C++ API](https://github.com/MechMindRobotics/mecheye_cpp_samples).
+
 
 ## Installation
 
